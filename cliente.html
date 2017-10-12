@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title> CHAT en Node.js</title>
+    <title>Aplicación CHAT en Node.js</title>
     <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
     <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -70,5 +70,57 @@
             </div>
         </div>
     </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    $(function(){
+        var socket = io.connect();
+        
+        var formularioUsuario = $("#formularioUsuario");
+        var formularioChat = $("#formularioChat");
+        
+        var usuario = $("#usuario");
+        var listaUsuarios = $("#listaUsuarios");
+        
+        var mensaje = $("#mensaje");
+        var chat = $("#ventanaChat");
+        
+        formularioUsuario.submit(function(evento){
+            evento.preventDefault();
+            socket.emit('nuevo usuario', usuario.val(), function(data){
+                if(data){
+                    $('#error').hide();
+                    $('#seccionUsuario').hide();
+                    $('#seccionPrincipal').show();
+                }
+                else{
+                    $('#error').html('El nombre del usuario ya exite');
+                    $('#error').show();
+                }
+            });
+            usuario.val('');
+            
+            socket.on('actualizarUsuarios', function(usuarios){
+                var html = '';
+                
+                usuarios.forEach(function(usuario){
+                    html += usuario + '<br />';
+                });
+                
+                listaUsuarios.html(html);
+            });
+            
+            formularioChat.submit(function(evento){
+                evento.preventDefault();
+                socket.emit('nuevo mensaje', mensaje.val());
+                mensaje.val('');
+            });
+            
+            socket.on('mensaje', function(data){
+                chat.append('<strong>' + data.usuario + '</strong> - ' + data.mensaje + '<br/>');
+            })
+        })
+    })
+    
+    </script>
 </body>
 </html>
